@@ -146,8 +146,6 @@ local function create_file()
   end, { noremap = true })
 end
 
--- zerotest/fs.lua
-
 local function save_buffer_to_directory()
   local bufnr = vim.api.nvim_get_current_buf()
 
@@ -166,6 +164,12 @@ local function save_buffer_to_directory()
       target_path:write(content, "w")
 
       vim.notify("💾 Arquivo salvo com sucesso: " .. target_path:absolute(), vim.log.levels.INFO)
+
+      -- Fechar o buffer atual
+      vim.api.nvim_buf_delete(bufnr, { force = true })
+
+      -- Abrir o novo arquivo salvo
+      vim.cmd("edit " .. target_path:absolute())
     end)
   end
 
@@ -188,7 +192,6 @@ local function save_buffer_to_directory()
     end,
   }):find()
 end
-
 
 return {
   create_file = create_file,
