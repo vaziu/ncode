@@ -148,49 +148,119 @@ end
 
 local function save_buffer_to_directory()
   local bufnr = vim.api.nvim_get_current_buf()
+  local notify = require('notify')
+  local Input = require("nui.input")
+  local event = require("nui.utils.autocmd").event
 
   -- Função para salvar após selecionar o diretório
   local function save_in_dir(dir)
-    vim.ui.input({ prompt = "Digite o nome do arquivo:" }, function(filename)
-      if not filename or filename == "" then
-        vim.notify("❌ Nome de arquivo inválido.", vim.log.levels.ERROR)
-        return
-      end
+    -- Variável local para armazenar o popup
+    local popup
 
-      local target_path = Path:new(dir, filename)
-      target_path:parent():mkdir({ parents = true })
-      local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
-      local content = table.concat(lines, "\n")
-      target_path:write(content, "w")
+    popup = Input({
+      position = "50%",
+      size = {
+        width = 62,
+      },
+      border = {
+        style = "rounded",
+        text = {
+          top = " Nome do Arquivo ",
+          top_align = "center",
+        },
+      },
+      win_options = {
+        winblend = 10,
+        winhighlight = "Normal:Normal,FloatBorder:FloatBorder",
+      },
+      relative = "editor",
+      row = 0.4, -- Posiciona o popup um pouco acima do centro vertical
+    }, {
+      prompt = "> ",
+      default_value = vim.fn.expand('%:t'), -- Sugere o nome do arquivo atual
+      on_submit = function(filename)
+        if not filename or filename == "" then
+          notify("❌ Nome de arquivo inválido.", vim.log.levels.ERROR, {
+            title = "Salvar Arquivo",
+            timeout = 2000,
+            render = "minimal"
+          })
+          return
+        end
 
-      vim.notify("💾 Arquivo salvo com sucesso: " .. target_path:absolute(), vim.log.levels.INFO)
+        local Path = require("plenary.path")
+        local target_path = Path:new(dir, filename)
 
-      -- Fechar o buffer atual
-      vim.api.nvim_buf_delete(bufnr, { force = true })
+        -- Cria diretórios pai se não existirem
+        target_path:parent():mkdir({ parents = true })
 
-      -- Abrir o novo arquivo salvo
-      vim.cmd("edit " .. target_path:absolute())
-    end)
+        local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
+        local content = table.concat(lines, "\n")
+
+        -- Salva o arquivo
+        target_path:write(content, "w")
+
+        -- Usa nvim-notify para feedback bonito
+        notify("💾 Arquivo salvo com sucesso!", vim.log.levels.INFO, {
+          title = "Salvar Arquivo",
+          timeout = 3000,
+          render = "default",
+          stages = "slide"
+        })
+
+        -- Fecha o buffer atual
+        vim.api.nvim_buf_delete(bufnr, { force = true })
+
+        -- Abre o novo arquivo
+        vim.cmd("edit " .. target_path:absolute())
+
+        -- Fecha o popup após salvar
+        if popup then
+          popup:unmount()
+        end
+      end,
+    })
+
+    -- Monta o popup
+    popup:mount()
+
+    -- Adiciona mapeamento para fechar com ESC
+    popup:map("n", "<Esc>", function()
+      popup:unmount()
+    end, { noremap = true })
+
+    -- Foco automático no input
+    vim.cmd("startinsert")
   end
 
-  -- Abrir o Telescope para escolher o diretório
-  pickers.new({}, {
-    prompt_title = "Selecione o diretório",
-    finder = finders.new_oneshot_job({ "fd", "--type", "d" }, { cwd = vim.loop.cwd() }),
-    sorter = conf.generic_sorter({}),
+  -- Usa Telescope para seleção de diretório com UI melhorada
+  require('telescope.builtin').find_files({
+    prompt_title = "📂 Selecione o diretório para salvar",
+    find_command = { "fd", "--type", "d" },
     attach_mappings = function(prompt_bufnr, map)
-      actions.select_default:replace(function()
-        actions.close(prompt_bufnr)
-        local selection = action_state.get_selected_entry()
+      map('i', '<CR>', function()
+        local selection = require('telescope.actions.state').get_selected_entry()
+        require('telescope.actions').close(prompt_bufnr)
+
         if selection then
           save_in_dir(selection[1])
         else
-          vim.notify("❌ Nenhum diretório selecionado.", vim.log.levels.ERROR)
+          notify("❌ Nenhum diretório selecionado.", vim.log.levels.WARN, {
+            title = "Salvar Arquivo",
+            timeout = 2000
+          })
         end
       end)
       return true
     end,
-  }):find()
+    layout_strategy = 'vertical',
+    layout_config = {
+      width = 0.7,
+      height = 0.6,
+      preview_height = 0.4,
+      prompt_position = "top"
+    }
+  })
 end
 
 return {
