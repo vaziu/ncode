@@ -175,16 +175,19 @@ wk.register({
 })
 
 wk.register({
-  ["h"] = { "<Cmd>Lspsaga hover_doc<CR>", "Hover documentation" },
-  ["p"] = { "<Cmd>Lspsaga preview_definition<CR>", "Preview definition" },
-  ["a"] = { "<Cmd>Lspsaga code_action<CR>", "Code action" },
-  ["r"] = { "<Cmd>Lspsaga rename<CR>", "Rename" },
-  ["f"] = { "<Cmd>Lspsaga lsp_finder<CR>", "Find LSP references" },
-  ["e"] = { "<Cmd>Lspsaga show_line_diagnostics<CR>", "Show line diagnostics" },
-  ["j"] = { "<Cmd>Lspsaga diagnostic_jump_next<CR>", "Jump to next diagnostic" },
-  ["k"] = { "<Cmd>Lspsaga diagnostic_jump_prev<CR>", "Jump to previous diagnostic" },
-  ["d"] = { "<Cmd>Lspsaga goto_definition<CR>", "Go to definition" },
-  ["o"] = { "<Cmd>Lspsaga outline<CR>", "Show outline" },
+  h = { '<cmd>Lspsaga hover_doc<CR>', 'Hover Documentation' },
+  p = { '<cmd>Lspsaga peek_definition<CR>', 'Peek Definition' },
+  a = { '<cmd>Lspsaga code_action<CR>', 'Code Action' },
+  r = { '<cmd>Lspsaga rename<CR>', 'Rename Symbol' },
+  f = {
+    "<cmd>Lspsaga finder<CR>",
+    'LSP Finder (Ref + Imp)'
+  },
+  e = { '<cmd>Lspsaga show_line_diagnostics<CR>', 'Line Diagnostics' },
+  j = { '<cmd>Lspsaga diagnostic_jump_next<CR>', 'Next Diagnostic' },
+  k = { '<cmd>Lspsaga diagnostic_jump_prev<CR>', 'Previous Diagnostic' },
+  d = { '<cmd>Lspsaga goto_definition<CR>', 'Go to Definition' },
+  o = { '<cmd>Lspsaga outline<CR>', 'Symbol Outline' },
   ["l"] = {
     "<cmd>lua require('Comment.api').toggle.linewise.current()<CR>",
     "Toggle line comment",
@@ -200,11 +203,12 @@ wk.register({
     "Go to implementation (LSP)",
   },
 }, {
-  mode = "n",               -- Modo normal
+  mode = "n", -- Modo normal
+  noremap = true,
+  silent = true,
   prefix = "<leader>c",     -- Prefixo específico
   name = "Code Operations", -- Nome do grupo
 })
-
 
 wk.register({
   ["l"] = {

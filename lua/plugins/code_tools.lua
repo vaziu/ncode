@@ -369,46 +369,94 @@ return {
     },
     after = 'nvim-lspconfig',
     config = function()
-      require('lspsaga').setup({
+      local saga = require('lspsaga')
+
+      saga.setup({
+        finder = {
+          max_height = 0.6,
+          left_width = 0.3,
+          right_width = 0.3,
+          keys = {
+            shuttle = '[w',
+            toggle_or_open = 'o',
+            vsplit = 'v',
+            split = 'i',
+            tabe = 't',
+            tabnew = 'r',
+            quit = 'q',
+            close = '<C-c>k'
+          },
+          layout = 'float',
+          default = 'ref+imp'
+        },
         ui = {
           theme = 'round',
+          border = 'rounded',
+          winblend = 10,
+          expand = '',
+          collapse = '',
+          preview = ' ',
+          code_action = '💡',
+          diagnostic = '🐞',
+          incoming = ' ',
+          outgoing = ' ',
+          hover = ' ',
         },
         lightbulb = {
           enable = true,
+          sign = true,
+          debounce = 75,
+          sign_priority = 40,
         },
         code_action = {
-          enable = true,
-          sign = true,
-          sign_priority = 20,
-          virtual_text = true,
+          num_shortcut = true,
+          show_server_name = true,
+          extend_gitsigns = true,
+          keys = {
+            quit = '<ESC>',
+            exec = '<CR>',
+          },
         },
         hover = {
           max_width = 0.6,
           open_link = 'gx',
+          open_browser = '!chrome',
+        },
+        diagnostic = {
+          show_code_action = true,
+          show_source = true,
+          jump_num_shortcut = true,
+          max_width = 0.7,
+          text_hl_follow = true,
+          border_follow = true,
+          keys = {
+            exec_action = 'o',
+            quit = 'q',
+            go_action = 'g'
+          },
         },
         rename = {
           quit = '<ESC>',
+          in_select = false,
+          keys = {
+            exec = '<CR>',
+            quit = '<ESC>',
+          },
         },
         symbol_in_winbar = {
-          in_custom = true,
           enable = true,
-          separator = ' > ',
+          separator = ' › ',
+          hide_keyword = false,
           show_file = true,
+          folder_level = 1,
           color_mode = true,
+          delay = 300,
         },
       })
-
-      -- Mapeamentos customizados
-      vim.api.nvim_set_keymap('n', '<leader>ca', '<cmd>Lspsaga code_action<CR>', { silent = true, noremap = true })
-      vim.api.nvim_set_keymap('n', 'K', '<cmd>Lspsaga hover_doc<CR>', { silent = true, noremap = true })
-      vim.api.nvim_set_keymap('n', 'gd', '<cmd>Lspsaga peek_definition<CR>', { silent = true, noremap = true })
-      vim.api.nvim_set_keymap('n', 'gr', '<cmd>Lspsaga rename<CR>', { silent = true, noremap = true })
-      vim.api.nvim_set_keymap('n', '<leader>bd', '<cmd>Lspsaga show_line_diagnostics<CR>',
-        { silent = true, noremap = true })
-      vim.api.nvim_set_keymap('n', '<leader>cd', '<cmd>Lspsaga show_cursor_diagnostics<CR>',
-        { silent = true, noremap = true })
     end,
   },
+
+
   {
     "folke/trouble.nvim",
     dependencies = { "nvim-tree/nvim-web-devicons" },
