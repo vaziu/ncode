@@ -205,26 +205,23 @@ wk.register({
   name = "Code Operations", -- Nome do grupo
 })
 
+
 wk.register({
   ["l"] = {
-    "<cmd>lua require('Comment.api').toggle.linewise.current()<CR>",
+    "<Plug>(comment_toggle_linewise_visual)",
     "Toggle line comment",
   },
   ["b"] = {
-    "<cmd>lua require('Comment.api').toggle.blockwise()<CR>",
+    "<Plug>(comment_toggle_blockwise_visual)",
     "Toggle block comment",
   },
-  ["f"] = {
-    function()
-      vim.lsp.buf.format()
-    end,
-    "Format (LSP)",
-  },
 }, {
-  mode = "v",               -- Modo normal
+  mode = "v",               -- Modo visual
   prefix = "<leader>c",     -- Prefixo específico
   name = "Code Operations", -- Nome do grupo
 })
+
+
 
 wk.register({
   ["<C-k>"] = { cmp.mapping.scroll_docs(-4), "Scroll docs up" },
