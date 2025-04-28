@@ -166,7 +166,7 @@ return {
     end,
   },
   {
-    "neph-iap/easycolor.nvim",
+    "vi013t/easycolor.nvim",
     dependencies = { "stevearc/dressing.nvim" }, -- Dependência opcional
     event = "VeryLazy",
     opts = {},

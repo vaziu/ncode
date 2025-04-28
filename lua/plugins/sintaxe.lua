@@ -30,7 +30,7 @@ return {
         pattern = { "*.ts" },
         callback = function()
           otter.activate({ filetype = "typescript" })
-          vim.notify("otter activate")
+          --vim.notify("otter activate")
         end,
       })
     end
