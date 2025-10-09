@@ -15,7 +15,6 @@ wk.register({
   ["c"] = { "<cmd>lua require('notify').dismiss()<CR>", "Close notifications" },
   ["n"] = { "<cmd>enew<CR>", "Create new buffer" },
   ["a"] = { function() require("nvim-window").pick() end, "Windows navigation" },
-
 }, {
   mode = "n",             -- Modo normal
   prefix = "<header>k",   -- Prefixo específico
