@@ -15,12 +15,6 @@ wk.register({
   ["c"] = { "<cmd>lua require('notify').dismiss()<CR>", "Close notifications" },
   ["n"] = { "<cmd>enew<CR>", "Create new buffer" },
   ["a"] = { function() require("nvim-window").pick() end, "Windows navigation" },
-  ["f"] = {
-    function()
-      vim.lsp.buf.format()
-    end,
-    "Format (LSP)",
-  },
 }, {
   mode = "n",             -- Modo normal
   prefix = "<header>k",   -- Prefixo específico
@@ -87,49 +81,49 @@ wk.register({
 -- Certifique-se de ter o which-key instalado e carregado
 
 -- Registra as teclas de atalho
+local wk = require("which-key")
+
 wk.register({
-    ["r"] = {
-      function()
-        local word = vim.fn.expand("<cword>")                               -- Obtém a palavra sob o cursor
-        local replacement = vim.fn.input("Replace '" .. word .. "' with: ") -- Solicita o novo valor
-        if replacement ~= "" then                                           -- Verifica se o usuário forneceu um valor
-          local cmd = string.format("%%s/%s/%s/gc", vim.fn.escape(word, "/"), vim.fn.escape(replacement, "/"))
-          vim.cmd(cmd)                                                      -- Executa o comando de substituição com confirmação
-        end
-      end,
-      "Replace local occurrences"
-    },
-    ["g"] = {
-      "<cmd>lua require('telescope.builtin').grep_string({ search = vim.fn.input('Search for > ') })<CR>",
-      "Find global references"
-    },
-    ["c"] = {
-      "<cmd>noh<CR>", "Clear highlights"
-    },
-    ["s"] = {
-      function()
-        vim.fn.feedkeys("/") -- Simula a tecla `/` para iniciar a pesquisa
-      end,
-      "Start search"
-    },
-    ["b"] = {
-      function()
-        vim.fn.feedkeys("?") -- Simula a tecla `?` para iniciar a pesquisa para trás
-      end,
-      "Start backward search"
-    },
-    ["n"] = {
-      "n", "Next search result"
-    }, -- Navega para o próximo resultado da pesquisa
-    ["p"] = {
-      "N", "Previous search result"
-    }, -- Navega para o resultado anterior da pesquisa
+  ["r"] = {
+    function()
+      local word = vim.fn.expand("<cword>")                               -- Obtém a palavra sob o cursor
+      local replacement = vim.fn.input("Replace '" .. word .. "' with: ") -- Solicita o novo valor
+      if replacement ~= "" then                                           -- Verifica se o usuário forneceu um valor
+        local cmd = string.format("%%s/%s/%s/gc", vim.fn.escape(word, "/"), vim.fn.escape(replacement, "/"))
+        vim.cmd(cmd)                                                      -- Executa o comando de substituição com confirmação
+      end
+    end,
+    "Replace local occurrences"
   },
-  {
-    mode = "n",                -- Modo normal
-    prefix = "<leader>s",      -- Prefixo específico
-    name = "Search & Replace", -- Nome do grupo
-  })
+  ["g"] = {
+    function()
+      local query = vim.fn.input("Search for > ")
+      require("fzf-lua").grep({ search = query })  -- Substitui telescope.grep_string
+    end,
+    "Find global references"
+  },
+  ["c"] = {
+    "<cmd>noh<CR>", "Clear highlights"
+  },
+  ["s"] = {
+    function()
+      vim.fn.feedkeys("/") -- Simula a tecla `/` para iniciar a pesquisa
+    end,
+    "Start search"
+  },
+  ["b"] = {
+    function()
+      vim.fn.feedkeys("?") -- Simula a tecla `?` para iniciar a pesquisa para trás
+    end,
+    "Start backward search"
+  },
+  ["n"] = { "n", "Next search result" },     -- Próximo resultado da pesquisa
+  ["p"] = { "N", "Previous search result" }, -- Resultado anterior da pesquisa
+}, {
+  mode = "n",                -- Modo normal
+  prefix = "<leader>s",      -- Prefixo específico
+  name = "Search & Replace", -- Nome do grupo
+})
 
 
 wk.register({
@@ -140,13 +134,21 @@ wk.register({
   name = "Files Explorer", -- Nome do grupo
 })
 
+
+local save_cmds = require("autocmds.keymapcmd")
+local fzf = require("fzf-lua")
+
 wk.register({
-  ["f"] = { function() require("telescope.builtin").find_files() end, "Find files" },
-  ["g"] = { function() require("telescope.builtin").live_grep() end, "Live grep" },
-  ["b"] = { function() require("telescope.builtin").buffers() end, "Display open buffers" },
-  ["h"] = { function() require("telescope.builtin").help_tags() end, "Help tags" },
+  ["f"] = { function() fzf.files() end, "Find files" },         -- find_files
+  ["g"] = { function() fzf.grep() end, "Live grep" },           -- live_grep
+  ["b"] = { function() fzf.buffers() end, "Display open buffers" }, -- buffers
+  ["h"] = { function() fzf.help_tags() end, "Help tags" },      -- help_tags
 
   ["c"] = { function() require("functions").create_file() end, "Create files" },
+
+  ["w"] = { save_cmds.save_without_format, "Save without format" },
+  ["W"] = { save_cmds.save_and_format, "Save and format" },
+
 }, {
   mode = "n",             -- Modo normal
   prefix = "<leader>f",   -- Prefixo específico
@@ -179,9 +181,11 @@ wk.register({
   p = { '<cmd>Lspsaga peek_definition<CR>', 'Peek Definition' },
   a = { '<cmd>Lspsaga code_action<CR>', 'Code Action' },
   r = { '<cmd>Lspsaga rename<CR>', 'Rename Symbol' },
-  f = {
-    "<cmd>Lspsaga finder<CR>",
-    'LSP Finder (Ref + Imp)'
+  ["f"] = {
+    function()
+      vim.lsp.buf.format()
+    end,
+    "Format file",
   },
   e = { '<cmd>Lspsaga show_line_diagnostics<CR>', 'Line Diagnostics' },
   j = { '<cmd>Lspsaga diagnostic_jump_next<CR>', 'Next Diagnostic' },
@@ -202,6 +206,10 @@ wk.register({
     end,
     "Go to implementation (LSP)",
   },
+  ["s"] = {
+    "<cmd>Lspsaga finder<CR>",
+    'LSP Finder (Ref + Imp)'
+  },
 }, {
   mode = "n", -- Modo normal
   noremap = true,
@@ -209,6 +217,25 @@ wk.register({
   prefix = "<leader>c",     -- Prefixo específico
   name = "Code Operations", -- Nome do grupo
 })
+
+-- Formatar apenas a seleção visual
+wk.register({
+  ["f"] = {
+    function()
+      -- pega o intervalo da seleção visual
+      local start_pos = vim.api.nvim_buf_get_mark(0, "<")
+      local end_pos = vim.api.nvim_buf_get_mark(0, ">")
+      vim.lsp.buf.format({
+        async = true,
+        range = {
+          ["start"] = { start_pos[1] - 1, start_pos[2] },
+          ["end"] = { end_pos[1] - 1, end_pos[2] },
+        },
+      })
+    end,
+    "Format selection",
+  },
+}, { mode = "v", prefix = "<leader>c", name = "Code Operations" })
 
 wk.register({
   ["l"] = {

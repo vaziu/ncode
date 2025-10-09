@@ -1,7 +1,7 @@
 -- ~/.config/nvim/lua/plugins/zerotest.lua
 
 return {
-  dir = "~/Projetos/zerotest-neovim-plugin", -- caminho absoluto até o plugin local
+  dir = "~/Projetos/zerotest-nevim-plugin", -- caminho absoluto até o plugin local
   name = "zerotest",
   lazy = false,
   config = function()

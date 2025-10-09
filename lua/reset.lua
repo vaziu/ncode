@@ -42,7 +42,7 @@ vim.opt.undofile = true   -- Habilitar undo em arquivos
 -- Undo e Redo
 vim.opt.undolevels = 1000  -- Número máximo de versões do undo
 vim.opt.undoreload = 10000 -- Número de linhas para recarregar o undo
-vim.opt.undofile = true    -- Usar arquivo de undo
+vim.g.tempfiles = true
 
 -- Cursor e Mouse
 vim.opt.mouse = "a"          -- Habilitar o uso do mouse em todos os modos
@@ -80,3 +80,6 @@ vim.o.timeoutlen = 500
 vim.o.winblend = 10
 vim.o.pumblend = 10
 vim.o.pumheight = 15
+
+-- configura editor config
+vim.g.editorconfig = true

@@ -82,23 +82,47 @@ return {
   },
 
   {
-    'nvim-telescope/telescope.nvim',
-    dependencies = { 'nvim-lua/plenary.nvim' },
+    "ibhagwan/fzf-lua",
+    dependencies = { "nvim-tree/nvim-web-devicons" },
     config = function()
-      local telescope = require('telescope')
-      telescope.setup({
-        defaults = {
-          file_ignore_patterns = {
-            ".git", "node_modules", ".cache", "dist"
+      require('fzf-lua').setup({
+        -- Procurar arquivos usando ripgrep
+        files = {
+          cmd =
+          "rg --files --hidden --glob '!.git/*' --glob '!node_modules/*' --glob '!.cache/*' --glob '!dist/*' --glob '!build/*'",
+          previewer = "bat", -- preview com destaque de sintaxe
+          actions = {
+            ["default"] = require("fzf-lua.actions").file_edit,
+            ["ctrl-s"] = require("fzf-lua.actions").file_split,
+            ["ctrl-v"] = require("fzf-lua.actions").file_vsplit,
           },
-          hidden = true,
         },
-        pickers = {
-          find_files = {
-            hidden = true,
+
+        -- Procurar termos dentro de arquivos
+        grep = {
+          cmd = "rg --vimgrep --hidden --glob '!{.git,node_modules,.cache,dist,build}/*'",
+          previewer = "bat", -- preview com destaque de sintaxe
+          actions = {
+            ["default"] = require("fzf-lua.actions").file_edit,
+            ["ctrl-s"] = require("fzf-lua.actions").file_split,
+            ["ctrl-v"] = require("fzf-lua.actions").file_vsplit,
           },
+        },
+
+        -- Ícones para arquivos
+        devicons = {
+          enable = true,
+        },
+
+        -- Outras configurações gerais do FZF
+        fzf_opts = {
+          ["--ansi"] = "",
+          ["--prompt"] = "> ",
+          ["--info"] = "inline",
+          ["--height"] = "100%",
         },
       })
     end
-  },
+  }
+
 }

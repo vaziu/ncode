@@ -27,7 +27,8 @@ return {
       'html',
       'cssls',
       'lua_ls',
-      'biome'
+      'biome',
+      'jdtls'
     },
     settings = {
       html = {},
@@ -35,7 +36,8 @@ return {
       lua_ls = {},
       pyright = {},
       rust_analyzer = {},
-      biome = {}
+      biome = {},
+      jdtls = {}
     },
 
   },
@@ -62,15 +64,24 @@ return {
       { name = "DiagnosticSignHint", text = "󱩎", texthl = "DiagnosticSignHint" },
     },
   },
-  -- languages = {
-  -- javascript = {'biome'},
-  -- typescript = {'biome'},
-  -- typescriptreact = {'biome'},
-  -- javascriptreact = {'biome'},
-  -- html = {'prettier'},
-  -- css = {'prettier'},
-  -- }
-  -- },
+  languages = {
+    java = {
+      linter = { 'checkstyle' },
+      formatter = { 'google_java_format' }
+    },
+    -- javascript = {'biome'},
+    -- typescript = {'biome'},
+    typescriptreact = {
+      linter = { 'eslint' },
+      formatter = { 'prettier' }
+    },
+    javascriptreact = {
+      linter = { 'eslint' },
+      formatter = { 'prettier' }
+    },
+    -- html = {'prettier'},
+    -- css = {'prettier'},
+  },
   debuggers = {},
 
 

@@ -157,7 +157,10 @@ local function configure_linters(builtins, filetype, linters)
   for _, linter in ipairs(linters) do
     local linter_source = vim.deepcopy(require("null-ls").builtins.diagnostics[linter])
     if linter_source then
-      table.insert(sources, linter_source.with({ filetypes = { filetype } }))
+      table.insert(sources, linter_source.with({
+        filetypes = { filetype },
+        prefer_local = "node_modules/.bin"
+      }))
     end
   end
   return sources
@@ -169,7 +172,10 @@ local function configure_formatters(builtins, filetype, formatters)
   for _, formatter in ipairs(formatters) do
     local formatter_source = vim.deepcopy(require("null-ls").builtins.formatting[formatter])
     if formatter_source then
-      table.insert(sources, formatter_source.with({ filetypes = { filetype } }))
+      table.insert(sources, formatter_source.with({
+        filetypes = { filetype },
+        prefer_local = "node_modules/.bin"
+      }))
     end
   end
   return sources
@@ -246,7 +252,7 @@ local function configure_null_ls(diagnostics_config)
   apply_diagnostics_settings()
 
   -- Configura autocomandos
-  setup_autocmds()
+  --setup_autocmds()
 end
 
 return {

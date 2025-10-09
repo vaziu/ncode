@@ -1,5 +1,5 @@
 return {
-  {
+--[[   {
     'jmbuhr/otter.nvim',
     dependencies = {
       'nvim-treesitter/nvim-treesitter',
@@ -34,7 +34,7 @@ return {
         end,
       })
     end
-  },
+  }, ]]
   {
     'maxmellon/vim-jsx-pretty',
     ft = { 'javascript', 'typescript', 'javascriptreact', 'typescriptreact' },

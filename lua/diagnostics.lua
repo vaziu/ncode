@@ -52,6 +52,10 @@ return {
     lua = {
       linter = { "stylua" },
       formatter = { "stylua" }
+    },
+    java = {
+      linter = { 'checkstyle' },
+      formatter = { 'google_java_format' }
     }
   },
 }

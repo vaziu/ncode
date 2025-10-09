@@ -6,10 +6,11 @@
 -- Carregue a configuração dos plugins
 require('lazy_setup')
 require('reset')
+require('file_history')
 require('lsps')
 require('diagnostics')
 require('keymaps')
-require('autocmds')
+require('autocmds.init')
 
 
 vim.api.nvim_set_hl(0, "BufferLineFill", { bg = "none" })
