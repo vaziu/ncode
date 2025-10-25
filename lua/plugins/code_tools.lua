@@ -14,28 +14,40 @@ local diagnostics_config = vim.deepcopy(default_diagnostics)
 utils.merge_tables(diagnostics_config, custom_settings.diagnostics or {})
 
 local function apply_config(server, opts)
-  local lspconfig = require("lspconfig")
+  -- NÃO use require('lspconfig') aqui; v0.11 recomenda a API nativa:
+  -- vim.lsp.config() + vim.lsp.enable()
+
   local server_opts = lsps_config.settings and lsps_config.settings[server] or {}
 
-  -- Mescla configurações existentes com as novas opções
+  -- 1) mescla configs do servidor com as 'opts' passadas
   local merged_opts = vim.deepcopy(server_opts)
   utils.merge_tables(merged_opts, opts or {})
 
-  -- Adiciona verificação para suporte a documentSymbols
-  merged_opts.on_attach = function(client, bufnr)
-    -- Verifica se o servidor suporta documentSymbols antes de anexar nvim-navbuddy
-    if client.server_capabilities.documentSymbolProvider then
-      require("nvim-navbuddy").attach(client, bufnr)
-    end
+  -- 2) capabilities (ex.: cmp + foldingRange para nvim-ufo)
+  local capabilities
+  local ok_cmp, cmp_caps = pcall(function()
+    return require("cmp_nvim_lsp").default_capabilities()
+  end)
+  capabilities = ok_cmp and cmp_caps or vim.lsp.protocol.make_client_capabilities()
+  capabilities.textDocument.foldingRange = { dynamicRegistration = false, lineFoldingOnly = true }
+  merged_opts.capabilities = vim.tbl_deep_extend("force", capabilities, merged_opts.capabilities or {})
 
-    -- Chama o on_attach original, se houver
-    if server_opts.on_attach then
-      server_opts.on_attach(client, bufnr)
+  -- 3) preserve on_attach anterior e anexar navbuddy com segurança
+  local previous_on_attach = merged_opts.on_attach
+  merged_opts.on_attach = function(client, bufnr)
+    if client.server_capabilities.documentSymbolProvider then
+      local ok_nav, navbuddy = pcall(require, "nvim-navbuddy")
+      if ok_nav then navbuddy.attach(client, bufnr) end
+    end
+    if type(previous_on_attach) == "function" then
+      pcall(previous_on_attach, client, bufnr)
     end
   end
 
-  -- Configura o servidor LSP com todas as opções disponíveis
-  lspconfig[server].setup(merged_opts)
+  -- 4) registra (config) e habilita (enable) o server pela API nova
+  -- OBS: o nvim-lspconfig fornece os defaults via arquivos em runtimepath.
+  vim.lsp.config(server, merged_opts)  -- estende a config default do server
+  vim.lsp.enable(server)               -- habilita para os seus filetypes
 end
 
 -- Função para aplicar configurações gerais de diagnósticos
@@ -256,40 +268,59 @@ local function configure_null_ls(diagnostics_config)
 end
 
 return {
+    -- mason core
   {
     "williamboman/mason.nvim",
-    config = function()
-      require("mason").setup()
-    end,
+    lazy = false,
+    priority = 900, -- sobe cedo (antes dos que dependem dele)
+    opts = {},
   },
 
+  -- mason-null-ls (integra com null-ls) + tua configuração de null-ls
   {
     "williamboman/mason-null-ls.nvim",
     dependencies = {
-      "nvimtools/none-ls.nvim",
       "williamboman/mason.nvim",
+      "nvimtools/none-ls.nvim",
     },
+    -- carrega cedo para que a lista de ferramentas já exista quando o orquestrador rodar
+    event = "VeryLazy",
     config = function()
+      -- tua função existente
       configure_null_ls(diagnostics_config)
     end,
   },
 
+  -- orquestrador: instala/atualiza tudo (LSPs + null-ls + o que mais você quiser)
   {
     "WhoIsSethDaniel/mason-tool-installer.nvim",
     dependencies = { "williamboman/mason.nvim" },
-    after = { "williamboman/mason-null-ls.nvim" },
+    event = "VeryLazy",
     config = function()
-      local builtins = get_all_builtins()
-      local unavailable_tools = get_unavailable_tools(diagnostics_config)
+      -- LSPs declarados no teu lsps_config
       local servers = lsps_config.servers or {}
 
-      -- Cria a tabela de ferramentas a serem instaladas
-      local ensure_installed = vim.tbl_extend("force", unavailable_tools, servers)
+      -- Ferramentas de null-ls que NÃO são built-ins ou que precisam vir via mason
+      local unavailable = get_unavailable_tools(diagnostics_config) -- { diagnostics = {...}, formatting = {...} }
 
+      -- achata e remove duplicatas
+      local to_install, seen = {}, {}
+      local function add(name)
+        if name and not seen[name] then
+          seen[name] = true
+          table.insert(to_install, name)
+        end
+      end
 
+      for _, s in ipairs(servers) do add(s) end
+      for _, n in ipairs(unavailable.diagnostics or {}) do add(n) end
+      for _, n in ipairs(unavailable.formatting or {}) do add(n) end
+
+      -- (opcional) adicione CLIs genéricos aqui:
+      -- for _, extra in ipairs({ "stylua", "prettierd", "eslint_d", "shellcheck" }) do add(extra) end
 
       require("mason-tool-installer").setup({
-        ensure_installed = ensure_installed,
+        ensure_installed = to_install,
         auto_update = true,
         run_on_start = true,
         integrations = {
@@ -301,30 +332,38 @@ return {
     end,
   },
 
+  -- mason-lspconfig (sem setup_handlers)
   {
     "williamboman/mason-lspconfig.nvim",
     dependencies = {
-      "neovim/nvim-lspconfig",
       "williamboman/mason.nvim",
+      "neovim/nvim-lspconfig",
     },
-    after = { "WhoIsSethDaniel/mason-tool-installer.nvim" },
-    config = function()
+    event = "VeryLazy",
+    opts = function()
+      return {
+        ensure_installed = lsps_config.servers or {},
+        -- NÃO habilitamos automático para manter teu apply_config (on_attach/capabilities/navbuddy)
+        automatic_installation = false, -- (mantém compat com versões antigas)
+      }
+    end,
+    config = function(_, opts)
       local mason_lspconfig = require("mason-lspconfig")
-      local servers = lsps_config.servers or {}
 
       mason_lspconfig.setup({
-        ensure_installed = servers
+        ensure_installed = opts.ensure_installed,
+        automatic_installation = opts.automatic_installation,
       })
 
-      -- Configura todos os servidores
-      mason_lspconfig.setup_handlers({
-        function(server)
-          local opts = lsps_config.settings[server] or {}
-          apply_config(server, opts)
-        end,
-      })
+      -- Configura cada servidor chamando tua função apply_config
+      for _, server in ipairs(opts.ensure_installed or {}) do
+        local sopts = lsps_config.settings and lsps_config.settings[server] or {}
+        apply_config(server, sopts)
+      end
     end,
   },
+
+
   {
     "SmiteshP/nvim-navbuddy",
     dependencies = {

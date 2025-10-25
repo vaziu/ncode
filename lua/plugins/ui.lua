@@ -90,6 +90,12 @@ return {
           light = "latte",
           dark = "mocha",
         },
+        styles = {
+          comments  = { "italic" },
+          keywords  = { "italic" },
+          functions = { "bold" },
+          types     = { "bold" },
+        },
         transparent_background = false,
         integrations = {
           bufferline = true, -- Habilite a integração com bufferline

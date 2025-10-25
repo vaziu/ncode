@@ -83,3 +83,5 @@ vim.o.pumheight = 15
 
 -- configura editor config
 vim.g.editorconfig = true
+
+

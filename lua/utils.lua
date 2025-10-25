@@ -394,6 +394,61 @@ function apply_borders(bufnr)
   -- Obtém o ID da janela associada ao buffer
 end
 
+-- Helpers p/ folding (compatível com qualquer versão do ufo)
+local function _lnum() return vim.api.nvim_win_get_cursor(0)[1] end
+
+-- Fecha o fold sob o cursor
+local function close_current_fold()
+  -- nativo resolve o fold do cursor de forma determinística
+  vim.cmd("normal! zc")
+end
+
+-- Abre o fold sob o cursor
+local function open_current_fold()
+  vim.cmd("normal! zo")
+end
+
+-- Fecha todos os folds do buffer
+local function close_all_fold()
+  local ok, ufo = pcall(require, "ufo")
+  if ok and type(ufo.closeAllFolds) == "function" then
+    ufo.closeAllFolds()
+  else
+    vim.cmd("normal! zM")
+  end
+end
+
+-- Abre todos os folds do buffer
+local function open_all_fold()
+  local ok, ufo = pcall(require, "ufo")
+  if ok and type(ufo.openAllFolds) == "function" then
+    ufo.openAllFolds()
+  else
+    vim.cmd("normal! zR")
+  end
+end
+
+-- Folding toggles (compatíveis com/sem nvim-ufo)
+local function toggle_current_fold()
+  local lnum = vim.api.nvim_win_get_cursor(0)[1]
+  if vim.fn.foldclosed(lnum) ~= -1 then
+    vim.cmd("normal! zo")   -- abrir se está fechado
+  else
+    vim.cmd("normal! zc")   -- fechar se está aberto
+  end
+end
+
+local function toggle_all_folds()
+  -- guarda estado por buffer para alternar entre zM e zR
+  vim.b._folds_all_closed = not vim.b._folds_all_closed
+  local ok, ufo = pcall(require, "ufo")
+  if vim.b._folds_all_closed then
+    if ok and type(ufo.closeAllFolds) == "function" then ufo.closeAllFolds() else vim.cmd("normal! zM") end
+  else
+    if ok and type(ufo.openAllFolds)  == "function" then ufo.openAllFolds()  else vim.cmd("normal! zR") end
+  end
+end
+
 return {
   show_bufferline = show_bufferline,
   set_custom_colors = set_custom_colors,
@@ -408,5 +463,11 @@ return {
   commander_creator = commander_creator,
   create_terminal = create_terminal,
   deep_copy = deep_copy,
-  apply_borders = apply_borders
+  apply_borders = apply_borders,
+  close_current_fold = close_current_fold,
+  open_current_fold = open_current_fold,
+  close_all_fold = close_all_fold,
+  open_all_fold = open_all_fold,
+  toggle_current_fold = toggle_current_fold,
+  toggle_all_folds = toggle_all_folds,
 }

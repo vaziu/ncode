@@ -210,6 +210,13 @@ wk.register({
     "<cmd>Lspsaga finder<CR>",
     'LSP Finder (Ref + Imp)'
   },
+
+
+  t = {
+    name = "Toggle foldings",
+  c  = { utils.toggle_current_fold, "Toggle current folding" },
+  a = { utils.toggle_all_folds,  "Toggle all foldings" },
+  }
 }, {
   mode = "n", -- Modo normal
   noremap = true,

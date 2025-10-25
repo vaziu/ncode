@@ -1,7 +1,7 @@
 -- ~/.config/nvim/lua/plugins/zerotest.lua
 
 return {
-  dir = "~/Projetos/zerotest-nevim-plugin", -- caminho absoluto até o plugin local
+  --[[ dir = "~/Projetos/zerotest-nevim-plugin", -- caminho absoluto até o plugin local
   name = "zerotest",
   lazy = false,
   config = function()
@@ -13,5 +13,5 @@ return {
       local lines = vim.fn.getline("'<", "'>")
       require("zerotest").ask(table.concat(lines, "\n"))
     end, { noremap = true, silent = true, desc = "Ask AI (seleção visual)" })
-  end,
+  end, ]]
 }
